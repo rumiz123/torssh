@@ -5,12 +5,12 @@ SSH, SCP, SFTP and more over Tor SOCKS5 proxy. Works with both clearnet IPs and 
 ## Install
 
 ```bash
-npm install -g torssh-cli
+npm install -g tor-ssh
 ```
 
 Or with pnpm:
 ```bash
-pnpm add -g torssh-cli
+pnpm add -g tor-ssh
 ```
 
 ## Requirements
