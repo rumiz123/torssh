@@ -19,6 +19,18 @@ pnpm add -g tor-ssh
 - `nc` (netcat) with SOCKS support — built-in on macOS and most Linux distros
 - Tor running with SOCKS proxy (default: `127.0.0.1:9050`)
 
+  **Install Tor (macOS):**
+  ```bash
+  brew install tor
+  brew services start tor
+  ```
+
+  **Install Tor (Linux):**
+  ```bash
+  sudo apt install tor
+  sudo systemctl start tor
+  ```
+
 ## Usage
 
 ### SSH over Tor
