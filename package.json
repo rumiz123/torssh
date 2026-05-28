@@ -4,6 +4,7 @@
   "description": "SSH, SCP, SFTP and more over Tor SOCKS5 proxy",
   "main": "index.js",
   "bin": {
+    "torutils": "./bin/torssh.js",
     "torssh": "./bin/torssh.js",
     "torscp": "./bin/torscp.js",
     "torsftp": "./bin/torsftp.js",
