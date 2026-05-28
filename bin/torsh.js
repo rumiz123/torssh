@@ -39,6 +39,8 @@ function main() {
     console.log('  torsh git clone ssh://user@host/repo');
     console.log('  torsh sshfs user@host:/remote /local');
     console.log('  torsh mosh user@host');
+    console.log('  torsh curl https://check.torproject.org');
+    console.log('  torsh ping google.com');
     console.log('');
     console.log('Environment variables:');
     console.log('  TOR_SOCKS_PORT  - Tor SOCKS proxy port (default: 9050)');
@@ -63,13 +65,6 @@ function main() {
       
     case 'rsync':
       child = spawn('rsync', ['-e', `ssh ${sshOptsStr}`, ...rest], { stdio: 'inherit' });
-      break;
-      
-    case 'git':
-      child = spawn('git', rest, {
-        stdio: 'inherit',
-        env: { ...process.env, GIT_SSH_COMMAND: `ssh ${sshOptsStr}` }
-      });
       break;
       
     case 'sshfs':
@@ -100,6 +95,27 @@ function main() {
       ], { stdio: 'inherit' });
       break;
     }
+
+    case 'ping': {
+      const socksHost = process.env.TOR_SOCKS_HOST || '127.0.0.1';
+      const socksPort = process.env.TOR_SOCKS_PORT || '9050';
+      child = spawn('proxychains4', ['-q', '-f', `/dev/stdin`, 'ping', ...rest], {
+        stdio: ['pipe', 'inherit', 'inherit'],
+        env: { ...process.env }
+      });
+      if (child.stdin) {
+        child.stdin.write(`strict_chain\nproxy_dns\ntcp_read_time_out 15000\ntcp_connect_time_out 8000\n[ProxyList]\nsocks5 ${socksHost} ${socksPort}\n`);
+        child.stdin.end();
+      }
+      break;
+    }
+
+    case 'git':
+      child = spawn('git', rest, {
+        stdio: 'inherit',
+        env: { ...process.env, GIT_SSH_COMMAND: `ssh ${sshOptsStr}` }
+      });
+      break;
       
     default:
       child = spawn(cmd, rest, {
