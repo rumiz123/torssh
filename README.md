@@ -1,16 +1,16 @@
-# torssh-cli
+# torutils
 
 SSH, SCP, SFTP and more over Tor SOCKS5 proxy. Works with both clearnet IPs and `.onion` hidden services.
 
 ## Install
 
 ```bash
-npm install -g tor-ssh
+npm install -g torutils
 ```
 
 Or with pnpm:
 ```bash
-pnpm add -g tor-ssh
+pnpm add -g torutils
 ```
 
 ## Requirements

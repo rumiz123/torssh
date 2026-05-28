@@ -19,10 +19,6 @@ function isBrewInstalled() {
   try { execSync('which brew', { stdio: 'ignore' }); return true; } catch { return false; }
 }
 
-function isAptAvailable() {
-  try { execSync('which apt', { stdio: 'ignore' }); return true; } catch { return false; }
-}
-
 function installTor() {
   const platform = os.platform();
   if (platform === 'darwin' && isBrewInstalled()) {
@@ -34,15 +30,6 @@ function installTor() {
       console.error('❌ Failed to install Tor via Homebrew.');
       return false;
     }
-  } else if (platform === 'linux' && isAptAvailable()) {
-    console.log('🔧 Installing Tor via apt...');
-    try {
-      execSync('sudo apt install -y tor', { stdio: 'inherit' });
-      return true;
-    } catch {
-      console.error('❌ Failed to install Tor via apt.');
-      return false;
-    }
   }
   return false;
 }
@@ -51,8 +38,6 @@ function startTor() {
   const platform = os.platform();
   if (platform === 'darwin') {
     try { execSync('brew services start tor', { stdio: 'inherit' }); return true; } catch { return false; }
-  } else if (platform === 'linux') {
-    try { execSync('sudo systemctl start tor', { stdio: 'inherit' }); return true; } catch { return false; }
   }
   return false;
 }
@@ -63,11 +48,17 @@ async function ensureTor() {
 
   console.log('⚠️  Tor SOCKS proxy not detected.');
 
+  const platform = os.platform();
+  if (platform !== 'darwin') {
+    console.error('\n❌ Auto-install only supported on macOS. Please install Tor manually:');
+    console.error('   Linux: sudo apt install tor && sudo systemctl start tor');
+    return false;
+  }
+
   const installed = installTor();
   if (!installed) {
     console.error('\n❌ Could not auto-install Tor. Please install it manually:');
     console.error('   macOS: brew install tor && brew services start tor');
-    console.error('   Linux: sudo apt install tor && sudo systemctl start tor');
     return false;
   }
 

@@ -1,5 +1,5 @@
 {
-  "name": "tor-ssh",
+  "name": "torutils",
   "version": "1.0.2",
   "description": "SSH, SCP, SFTP and more over Tor SOCKS5 proxy",
   "main": "index.js",
