@@ -1,0 +1,36 @@
+{
+  "name": "torssh-cli",
+  "version": "1.0.0",
+  "description": "SSH, SCP, SFTP and more over Tor SOCKS5 proxy",
+  "main": "index.js",
+  "bin": {
+    "torssh": "./bin/torssh.js",
+    "torscp": "./bin/torscp.js",
+    "torsftp": "./bin/torsftp.js",
+    "torssh-copy-id": "./bin/torssh-copy-id.js",
+    "torsh": "./bin/torsh.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tor",
+    "ssh",
+    "scp",
+    "sftp",
+    "onion",
+    "proxy",
+    "socks5",
+    "privacy",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ]
+}
