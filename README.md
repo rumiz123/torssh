@@ -71,6 +71,7 @@ torsh rsync -avz dir/ user@host:dir/
 torsh git clone ssh://user@host/repo
 torsh sshfs user@host:/remote /local
 torsh mosh user@host
+torsh curl https://check.torproject.org
 torsh ansible-playbook site.yml
 ```
 

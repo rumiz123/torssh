@@ -88,6 +88,18 @@ function main() {
         env: { ...process.env, ANSIBLE_SSH_ARGS: sshOptsStr }
       });
       break;
+
+    case 'curl':
+    case 'torcurl': {
+      const socksHost = process.env.TOR_SOCKS_HOST || '127.0.0.1';
+      const socksPort = process.env.TOR_SOCKS_PORT || '9050';
+      child = spawn('curl', [
+        '--proxy', `socks5h://${socksHost}:${socksPort}`,
+        '--location',
+        ...rest
+      ], { stdio: 'inherit' });
+      break;
+    }
       
     default:
       child = spawn(cmd, rest, {
