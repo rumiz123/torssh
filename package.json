@@ -1,6 +1,6 @@
 {
-  "name": "torssh",
-  "version": "1.0.0",
+  "name": "tor-ssh",
+  "version": "1.0.2",
   "description": "SSH, SCP, SFTP and more over Tor SOCKS5 proxy",
   "main": "index.js",
   "bin": {
