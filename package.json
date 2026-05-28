@@ -11,8 +11,7 @@
     "torsh": "./bin/torsh.js"
   },
   "scripts": {
-    "postinstall": "node bin/check-tor.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" \u0026\u0026 exit 1"
   },
   "keywords": [
     "tor",

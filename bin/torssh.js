@@ -1,50 +1,136 @@
 #!/usr/bin/env node
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const path = require('path');
+const net = require('net');
+const os = require('os');
+
+function isTorRunning() {
+  return new Promise((resolve) => {
+    const socksHost = process.env.TOR_SOCKS_HOST || '127.0.0.1';
+    const socksPort = process.env.TOR_SOCKS_PORT || '9050';
+    const socket = net.createConnection({ host: socksHost, port: parseInt(socksPort) });
+    socket.on('connect', () => { socket.end(); resolve(true); });
+    socket.on('error', () => resolve(false));
+    socket.setTimeout(2000, () => { socket.destroy(); resolve(false); });
+  });
+}
+
+function isBrewInstalled() {
+  try { execSync('which brew', { stdio: 'ignore' }); return true; } catch { return false; }
+}
+
+function isAptAvailable() {
+  try { execSync('which apt', { stdio: 'ignore' }); return true; } catch { return false; }
+}
+
+function installTor() {
+  const platform = os.platform();
+  if (platform === 'darwin' && isBrewInstalled()) {
+    console.log('🔧 Installing Tor via Homebrew...');
+    try {
+      execSync('brew install tor', { stdio: 'inherit' });
+      return true;
+    } catch {
+      console.error('❌ Failed to install Tor via Homebrew.');
+      return false;
+    }
+  } else if (platform === 'linux' && isAptAvailable()) {
+    console.log('🔧 Installing Tor via apt...');
+    try {
+      execSync('sudo apt install -y tor', { stdio: 'inherit' });
+      return true;
+    } catch {
+      console.error('❌ Failed to install Tor via apt.');
+      return false;
+    }
+  }
+  return false;
+}
+
+function startTor() {
+  const platform = os.platform();
+  if (platform === 'darwin') {
+    try { execSync('brew services start tor', { stdio: 'inherit' }); return true; } catch { return false; }
+  } else if (platform === 'linux') {
+    try { execSync('sudo systemctl start tor', { stdio: 'inherit' }); return true; } catch { return false; }
+  }
+  return false;
+}
+
+async function ensureTor() {
+  const running = await isTorRunning();
+  if (running) return true;
+
+  console.log('⚠️  Tor SOCKS proxy not detected.');
+
+  const installed = installTor();
+  if (!installed) {
+    console.error('\n❌ Could not auto-install Tor. Please install it manually:');
+    console.error('   macOS: brew install tor && brew services start tor');
+    console.error('   Linux: sudo apt install tor && sudo systemctl start tor');
+    return false;
+  }
+
+  console.log('🚀 Starting Tor service...');
+  const started = startTor();
+  if (!started) {
+    console.error('❌ Failed to start Tor service.');
+    return false;
+  }
+
+  console.log('⏳ Waiting for Tor to start...');
+  for (let i = 0; i < 10; i++) {
+    await new Promise(r => setTimeout(r, 1000));
+    if (await isTorRunning()) {
+      console.log('✅ Tor is now running!');
+      return true;
+    }
+  }
+
+  console.error('❌ Tor started but SOCKS proxy not responding.');
+  return false;
+}
 
 function getSshOpts(host) {
   const socksHost = process.env.TOR_SOCKS_HOST || '127.0.0.1';
   const socksPort = process.env.TOR_SOCKS_PORT || '9050';
   const isOnion = /\.onion$/.test(host);
   const knownHosts = path.join(process.env.HOME || '~', '.ssh', 'known_hosts_tor');
-  
+
   const opts = [
     '-o', `ProxyCommand=nc -x ${socksHost}:${socksPort} -X 5 %h %p`,
     '-o', `UserKnownHostsFile=${knownHosts}`,
   ];
-  
+
   if (isOnion) {
     opts.push('-o', 'StrictHostKeyChecking=no');
     opts.push('-o', 'VerifyHostKeyDNS=no');
   } else {
     opts.push('-o', 'StrictHostKeyChecking=accept-new');
   }
-  
+
   return opts;
 }
 
 function parseTarget(target) {
   let user = '';
   let hostPort = target;
-  
+
   const atIdx = target.indexOf('@');
   if (atIdx !== -1) {
     user = target.slice(0, atIdx);
     hostPort = target.slice(atIdx + 1);
   }
-  
+
   let host = hostPort;
   let port = '';
-  
-  // Handle IPv6 brackets
+
   if (hostPort.startsWith('[')) {
     const closeIdx = hostPort.indexOf(']');
     if (closeIdx !== -1) {
       host = hostPort.slice(0, closeIdx + 1);
       const rest = hostPort.slice(closeIdx + 1);
-      if (rest.startsWith(':')) {
-        port = rest.slice(1);
-      }
+      if (rest.startsWith(':')) port = rest.slice(1);
     }
   } else {
     const colonIdx = hostPort.lastIndexOf(':');
@@ -53,13 +139,13 @@ function parseTarget(target) {
       port = hostPort.slice(colonIdx + 1);
     }
   }
-  
+
   return { user, host, port };
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.length === 0) {
     console.log('Usage: torssh [user@]host[:port] [ssh-options]');
     console.log('');
@@ -68,25 +154,22 @@ function main() {
     console.log('  TOR_SOCKS_HOST  - Tor SOCKS proxy host (default: 127.0.0.1)');
     process.exit(1);
   }
-  
+
+  const torReady = await ensureTor();
+  if (!torReady) process.exit(1);
+
   const target = args[0];
   const rest = args.slice(1);
   const { user, host, port } = parseTarget(target);
-  
+
   const sshArgs = getSshOpts(host);
-  
-  if (port) {
-    sshArgs.push('-p', port);
-  }
-  
-  if (user) {
-    sshArgs.push(`${user}@${host}`);
-  } else {
-    sshArgs.push(host);
-  }
-  
+
+  if (port) sshArgs.push('-p', port);
+  if (user) sshArgs.push(`${user}@${host}`);
+  else sshArgs.push(host);
+
   sshArgs.push(...rest);
-  
+
   const child = spawn('ssh', sshArgs, { stdio: 'inherit' });
   child.on('exit', (code) => process.exit(code || 0));
 }
