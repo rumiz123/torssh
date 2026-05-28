@@ -1,6 +1,6 @@
 {
-  "name": "torutils",
-  "version": "1.0.2",
+  "name": "tor-utils",
+  "version": "1.0.5",
   "description": "SSH, SCP, SFTP, curl and more over Tor SOCKS5 proxy",
   "main": "index.js",
   "bin": {
@@ -13,7 +13,7 @@
     "torcurl": "./bin/torcurl.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" \u0026\u0026 exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "tor",
@@ -34,5 +34,8 @@
   "os": [
     "darwin",
     "linux"
-  ]
+  ],
+  "dependencies": {
+    "tor-utils": "^1.0.3"
+  }
 }
