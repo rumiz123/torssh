@@ -1,7 +1,7 @@
 {
   "name": "torutils",
   "version": "1.0.2",
-  "description": "SSH, SCP, SFTP and more over Tor SOCKS5 proxy",
+  "description": "SSH, SCP, SFTP, curl and more over Tor SOCKS5 proxy",
   "main": "index.js",
   "bin": {
     "torutils": "./bin/torssh.js",
@@ -9,7 +9,8 @@
     "torscp": "./bin/torscp.js",
     "torsftp": "./bin/torsftp.js",
     "torssh-copy-id": "./bin/torssh-copy-id.js",
-    "torsh": "./bin/torsh.js"
+    "torsh": "./bin/torsh.js",
+    "torcurl": "./bin/torcurl.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" \u0026\u0026 exit 1"

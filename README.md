@@ -1,6 +1,6 @@
 # torutils
 
-SSH, SCP, SFTP and more over Tor SOCKS5 proxy. Works with both clearnet IPs and `.onion` hidden services.
+SSH, SCP, SFTP, curl and more over Tor SOCKS5 proxy. Works with both clearnet IPs and `.onion` hidden services.
 
 ## Install
 
@@ -57,6 +57,12 @@ torsftp user@host:2222
 torssh-copy-id user@host
 ```
 
+### curl over Tor
+```bash
+torcurl https://check.torproject.org
+torcurl -O https://example.com/file.zip
+torcurl -H "Authorization: Bearer *** https://api.example.com/data
+```
 ### Universal wrapper (rsync, git, sshfs, mosh, ansible, etc.)
 ```bash
 torsh ssh user@host
