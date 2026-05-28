@@ -116,6 +116,64 @@ function main() {
         env: { ...process.env, GIT_SSH_COMMAND: `ssh ${sshOptsStr}` }
       });
       break;
+
+    case 'info': {
+      const socksHost = process.env.TOR_SOCKS_HOST || '127.0.0.1';
+      const socksPort = process.env.TOR_SOCKS_PORT || '9050';
+      
+      console.log('🧅 Tor Circuit Info');
+      console.log('═══════════════════');
+      console.log(`SOCKS Proxy: ${socksHost}:${socksPort}`);
+      console.log('');
+      
+      // Check if Tor is running
+      const net = require('net');
+      const socket = net.createConnection({ host: socksHost, port: parseInt(socksPort) });
+      socket.on('connect', () => {
+        socket.end();
+        console.log('✅ Tor SOCKS proxy: ONLINE');
+        console.log('');
+        
+        // Use curl to check exit node (no external dep)
+        const { spawn } = require('child_process');
+        const curl = spawn('curl', [
+          '--silent',
+          '--proxy', `socks5h://${socksHost}:${socksPort}`,
+          'https://check.torproject.org/api/ip'
+        ], { stdio: ['ignore', 'pipe', 'pipe'] });
+        
+        let data = '';
+        curl.stdout.on('data', chunk => data += chunk);
+        curl.on('close', (code) => {
+          if (code === 0) {
+            try {
+              const json = JSON.parse(data);
+              console.log('Exit Node IP:', json.IP || 'unknown');
+              console.log('Is Tor:', json.IsTor ? '✅ Yes' : '❌ No');
+            } catch {
+              console.log('Exit Node IP: (could not parse response)');
+            }
+          } else {
+            console.log('Exit Node IP: (could not reach check endpoint)');
+          }
+          console.log('');
+          console.log('To see full circuit details, use:');
+          console.log('  nyx  (Tor monitor)');
+          console.log('  or connect to Tor ControlPort');
+          process.exit(0);
+        });
+      });
+      socket.on('error', () => {
+        console.log('❌ Tor SOCKS proxy: OFFLINE');
+        console.log('');
+        console.log('Start Tor with:');
+        console.log('  brew services start tor    (macOS)');
+        console.log('  sudo systemctl start tor   (Linux)');
+        process.exit(1);
+      });
+      socket.setTimeout(3000, () => { socket.destroy(); });
+      return;
+    }
       
     default:
       child = spawn(cmd, rest, {
