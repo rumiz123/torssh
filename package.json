@@ -1,6 +1,6 @@
 {
   "name": "tor-utils",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "SSH, SCP, SFTP, curl and more over Tor SOCKS5 proxy",
   "main": "index.js",
   "bin": {
